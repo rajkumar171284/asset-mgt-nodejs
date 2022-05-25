@@ -46,6 +46,67 @@ router.get('/getAllAssets/:COMPANY_ID', (req, res) => {
             })
     })
 })
+router.get('/getAssetConnections', (req, res) => {
+    const COMPANY_ID = req.params.COMPANY_ID;
+    let sql = `SELECT * FROM asset_connection_type_tbl`;
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200
+            })
+    })
+})
+
+router.get('/getAllSensors', (req, res) => {
+    const COMPANY_ID = req.params.COMPANY_ID;
+    let sql = `SELECT * FROM sensor_type_tbl`;
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200
+            })
+    })
+})
+
+router.post('/addSensorSubCatg', (req, res) => {
+
+    const sql = `INSERT INTO sensor_subcategory_tbl(PID, SENSOR_TYPE_ID, CATEGORY_NAME, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?)`;
+    const todo = ['', req.body.SENSOR_TYPE_ID, req.body.CATEGORY_NAME, req.body.CREATED_BY, new Date()];
+
+    db.query(sql, todo, (err, result) => {
+        console.log(result)
+        if (err) {
+            throw err;
+            return res.status(400).send({
+                msg: err
+            });
+        }
+        else {
+            res.send({
+                data: result,
+                status: 200,
+                msg: 'Record added,successfully'
+            })
+
+        }
+    })
+})
+router.get('/getSubCatgSensorByID/:SENSOR_TYPE_ID', (req, res) => {
+    const SENSOR_TYPE_ID = req.params.SENSOR_TYPE_ID;
+    let sql = `SELECT * FROM sensor_subcategory_tbl WHERE SENSOR_TYPE_ID=${SENSOR_TYPE_ID}`;
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200
+            })
+    })
+})
 
 
 module.exports = router;
