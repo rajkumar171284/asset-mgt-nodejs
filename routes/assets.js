@@ -10,12 +10,21 @@ const jwt = require('jsonwebtoken');
 
 
 router.post('/addAssetConfig', (req, res) => {
-
-    const sql = `INSERT INTO asset_config_tbl(PID, ASSET_NAME, ASSET_TYPE, INDUSTRIAL_TYPE, INDUSTRIAL_DATA_SOURCE, CONNECTION_TYPE, TRACKING_DEVICE, SENSOR, SENSOR_CATEGORY, SENSOR_DATA_TYPE, MAC_ADDRESS, COMPANY_ID, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,? , ? )`;
-    const todo = ['', req.body.ASSET_NAME, req.body.ASSET_TYPE, req.body.INDUSTRIAL_TYPE, req.body.INDUSTRIAL_DATA_SOURCE, req.body.CONNECTION_TYPE, req.body.TRACKING_DEVICE, req.body.SENSOR, req.body.SENSOR_CATEGORY, req.body.SENSOR_DATA_TYPE, req.body.MAC_ADDRESS, req.body.COMPANY_ID, req.body.CREATED_BY, new Date()];
-
+    let sql;
+    let todo;
+    let errMessage;
+    if (req.body.PID) {
+        // update
+        console.log('update')
+        sql = 'UPDATE asset_config_tbl SET ASSET_NAME=?, ASSET_TYPE=?, INDUSTRIAL_TYPE=?, INDUSTRIAL_DATA_SOURCE=?, CONNECTION_TYPE=?, TRACKING_DEVICE=?, SENSOR=?, SENSOR_CATEGORY=?, SENSOR_DATA_TYPE=?, MAC_ADDRESS=?, COMPANY_ID = ?, MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
+        todo = [req.body.ASSET_NAME, req.body.ASSET_TYPE, req.body.INDUSTRIAL_TYPE, req.body.INDUSTRIAL_DATA_SOURCE, req.body.CONNECTION_TYPE, req.body.TRACKING_DEVICE, req.body.SENSOR, req.body.SENSOR_CATEGORY, req.body.SENSOR_DATA_TYPE, req.body.MAC_ADDRESS, req.body.COMPANY_ID, req.body.CREATED_BY, new Date(), req.body.PID];
+        errMessage = 'updated'
+    } else {
+        sql = `INSERT INTO asset_config_tbl(PID, ASSET_NAME, ASSET_TYPE, INDUSTRIAL_TYPE, INDUSTRIAL_DATA_SOURCE, CONNECTION_TYPE, TRACKING_DEVICE, SENSOR, SENSOR_CATEGORY, SENSOR_DATA_TYPE, MAC_ADDRESS, COMPANY_ID, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,? , ? )`;
+        todo = ['', req.body.ASSET_NAME, req.body.ASSET_TYPE, req.body.INDUSTRIAL_TYPE, req.body.INDUSTRIAL_DATA_SOURCE, req.body.CONNECTION_TYPE, req.body.TRACKING_DEVICE, req.body.SENSOR, req.body.SENSOR_CATEGORY, req.body.SENSOR_DATA_TYPE, req.body.MAC_ADDRESS, req.body.COMPANY_ID, req.body.CREATED_BY, new Date()];
+        errMessage = 'added'
+    }
     db.query(sql, todo, (err, result) => {
-        console.log(result)
         if (err) {
             throw err;
             return res.status(400).send({
@@ -26,23 +35,38 @@ router.post('/addAssetConfig', (req, res) => {
             res.send({
                 data: result,
                 status: 200,
-                msg: 'Record added,successfully'
+                msg: `Record ${errMessage},successfully`
             })
 
         }
     })
 })
 
+
 router.get('/getAllAssetsConfig/:COMPANY_ID', (req, res) => {
     const COMPANY_ID = req.params.COMPANY_ID;
     let sql = `SELECT * FROM asset_config_tbl WHERE COMPANY_ID=${COMPANY_ID}`;
     db.query(sql, (err, result) => {
-        // console.log(result)
         if (err) throw err;
         else
             res.send({
                 data: result,
                 status: 200
+            })
+    })
+})
+
+router.get('/deleteAssetConfig/:PID', (req, res) => {
+    const PID = req.params.PID;
+
+    let sql = `DELETE FROM asset_config_tbl WHERE PID=${PID}`;
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200,
+                msg: 'Record deleted.'
             })
     })
 })
@@ -183,7 +207,7 @@ router.get('/getSubCatgSensorByID/:SENSOR_TYPE_ID', (req, res) => {
     })
 })
 
-// assets
+// assets starts
 router.get('/getAllAssets', (req, res) => {
     const COMPANY_ID = req.params.COMPANY_ID;
     let sql = `SELECT * FROM asset_tbl`;
@@ -194,6 +218,80 @@ router.get('/getAllAssets', (req, res) => {
                 data: result,
                 status: 200
             })
+    })
+})
+// add asset
+router.post('/addAsset', (req, res) => {
+
+    let sql;
+    let todo;
+    let errMessage;
+    if (req.body.PID) {
+        // update
+        sql = 'UPDATE asset_tbl SET NAME = ?,ASSET_TYPE=?,COMPONENTS=?,MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
+        todo = [req.body.NAME, req.body.ASSET_TYPE, req.body.COMPONENTS, req.body.CREATED_BY, new Date(), req.body.PID];
+        errMessage = 'updated'
+    } else {
+        // add new
+        sql = `INSERT INTO asset_tbl(PID, NAME,ASSET_TYPE,COMPONENTS, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?)`;
+        todo = ['', req.body.NAME, req.body.ASSET_TYPE, req.body.COMPONENTS, req.body.CREATED_BY, new Date()];
+
+        errMessage = ' added';
+
+    }
+    db.query(sql, todo, (err, result) => {
+        console.log(result)
+        if (err) {
+            throw err;
+            return res.status(400).send({
+                msg: err
+            });
+        }
+        else {
+            res.send({
+                data: result,
+                status: 200,
+                msg: `Record ${errMessage},successfully`
+            })
+
+        }
+    })
+    // chart request
+    router.post('/createChartRequest', (req, res) => {
+
+        let sql;
+        let todo;
+        let errMessage;
+        if (req.body.PID) {
+            // update
+            sql = 'UPDATE chart_request_tbl SET NAME = ?,CHART_DATA=?,SQL_QUERY=?,MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
+            todo = [req.body.NAME, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.CREATED_BY, new Date(), req.body.PID];
+            errMessage = ' updated'
+        } else {
+            // add new
+            sql = `INSERT INTO chart_request_tbl(PID, NAME,CHART_DATA,SQL_QUERY, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?)`;
+            todo = ['', req.body.NAME, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.CREATED_BY, new Date()];
+
+            errMessage = ' added';
+
+        }
+        db.query(sql, todo, (err, result) => {
+            console.log(result)
+            if (err) {
+                throw err;
+                return res.status(400).send({
+                    msg: err
+                });
+            }
+            else {
+                res.send({
+                    data: result,
+                    status: 200,
+                    msg: `Record ${errMessage},successfully`
+                })
+
+            }
+        })
     })
 })
 
