@@ -56,7 +56,7 @@ router.get('/getAllAssetsConfig/:COMPANY_ID', (req, res) => {
     })
 })
 
-router.get('/deleteAssetConfig/:PID', (req, res) => {
+router.post('/deleteAssetConfig/:PID', (req, res) => {
     const PID = req.params.PID;
 
     let sql = `DELETE FROM asset_config_tbl WHERE PID=${PID}`;
@@ -120,6 +120,22 @@ router.get('/getAssetConnections', (req, res) => {
             })
     })
 })
+router.post('/deleteConnection/:PID', (req, res) => {
+    const PID = req.params.PID;
+
+    let sql = `DELETE FROM asset_connection_type_tbl WHERE PID=${PID}`;
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200,
+                msg: 'Record deleted.'
+            })
+    })
+})
+
+// sensor starts
 
 router.get('/getAllSensors', (req, res) => {
     const COMPANY_ID = req.params.COMPANY_ID;
@@ -256,42 +272,87 @@ router.post('/addAsset', (req, res) => {
 
         }
     })
-    // chart request
-    router.post('/createChartRequest', (req, res) => {
 
-        let sql;
-        let todo;
-        let errMessage;
-        if (req.body.PID) {
-            // update
-            sql = 'UPDATE chart_request_tbl SET NAME = ?,CHART_DATA=?,SQL_QUERY=?,MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
-            todo = [req.body.NAME, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.CREATED_BY, new Date(), req.body.PID];
-            errMessage = ' updated'
-        } else {
-            // add new
-            sql = `INSERT INTO chart_request_tbl(PID, NAME,CHART_DATA,SQL_QUERY, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?)`;
-            todo = ['', req.body.NAME, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.CREATED_BY, new Date()];
+})
+// chart request
+router.post('/addChartRequest', (req, res) => {
 
-            errMessage = ' added';
+    let sql;
+    let todo;
+    let errMessage;
+    if (req.body.PID) {
+        // update
+        sql = 'UPDATE chart_request_tbl SET NAME = ?,CHART_TYPE=?,CHART_DATA=?,SQL_QUERY=?,IS_DRAGGED=?,MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
+        todo = [req.body.NAME, req.body.CHART_TYPE, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.CREATED_BY, new Date(), req.body.PID];
+        errMessage = ' updated'
+    } else {
+        // add new
+        sql = `INSERT INTO chart_request_tbl(PID, NAME,CHART_DATA,SQL_QUERY,IS_DRAGGED, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?)`;
+        todo = ['', req.body.NAME, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.IS_DRAGGED, req.body.CREATED_BY, new Date()];
+
+        errMessage = ' added';
+
+    }
+    db.query(sql, todo, (err, result) => {
+        console.log(result)
+        if (err) {
+            throw err;
+            return res.status(400).send({
+                msg: err
+            });
+        }
+        else {
+            res.send({
+                data: result,
+                status: 200,
+                msg: `Record ${errMessage},successfully`
+            })
 
         }
-        db.query(sql, todo, (err, result) => {
-            console.log(result)
-            if (err) {
-                throw err;
-                return res.status(400).send({
-                    msg: err
-                });
-            }
-            else {
-                res.send({
-                    data: result,
-                    status: 200,
-                    msg: `Record ${errMessage},successfully`
-                })
+    })
+})
+// get all chart requests
+router.get('/allChartRequest/:IS_DRAGGED', (req, res) => {
+    //
+    let sql = `SELECT * FROM chart_request_tbl WHERE IS_DRAGGED=?`;
+    let todo = [req.params.IS_DRAGGED]
+    db.query(sql, todo, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200
+            })
+    })
+})
 
-            }
-        })
+
+router.post('/chartRequestChangeStatus', (req, res) => {
+
+    let sql = `UPDATE chart_request_tbl SET IS_DRAGGED=? WHERE PID=?`;
+    const todo = [req.body.IS_DRAGGED, req.body.PID]
+    db.query(sql,todo, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200,
+                msg: 'Record deleted.'
+            })
+    })
+})
+router.post('/deleteChartRequest/:PID', (req, res) => {
+    const PID = req.params.PID;
+
+    let sql = `DELETE FROM chart_request_tbl WHERE PID=${PID}`;
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200,
+                msg: 'Record deleted.'
+            })
     })
 })
 
