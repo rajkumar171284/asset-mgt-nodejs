@@ -15,13 +15,13 @@ router.post('/addAssetConfig', (req, res) => {
     let errMessage;
     if (req.body.PID) {
         // update
-        console.log('update')
-        sql = 'UPDATE asset_config_tbl SET ASSET_NAME=?, ASSET_TYPE=?, INDUSTRIAL_TYPE=?, INDUSTRIAL_DATA_SOURCE=?, CONNECTION_TYPE=?, TRACKING_DEVICE=?, SENSOR=?, SENSOR_CATEGORY=?, SENSOR_DATA_TYPE=?, MAC_ADDRESS=?, COMPANY_ID = ?, MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
-        todo = [req.body.ASSET_NAME, req.body.ASSET_TYPE, req.body.INDUSTRIAL_TYPE, req.body.INDUSTRIAL_DATA_SOURCE, req.body.CONNECTION_TYPE, req.body.TRACKING_DEVICE, req.body.SENSOR, req.body.SENSOR_CATEGORY, req.body.SENSOR_DATA_TYPE, req.body.MAC_ADDRESS, req.body.COMPANY_ID, req.body.CREATED_BY, new Date(), req.body.PID];
+        // console.log('update')
+        sql = 'UPDATE asset_config_tbl SET CONFIG_NAME=?, ASSET_ID=?, INDUSTRIAL_TYPE=?, INDUSTRIAL_DATA_SOURCE=?, CONNECTION_TYPE=?, TRACKING_DEVICE=?, SENSOR=?, SENSOR_CATEGORY=?, SENSOR_DATA_TYPE=?, MAC_ADDRESS=?, COMPANY_ID = ?, MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
+        todo = [req.body.CONFIG_NAME, req.body.ASSET_ID, req.body.INDUSTRIAL_TYPE, req.body.INDUSTRIAL_DATA_SOURCE, req.body.CONNECTION_TYPE, req.body.TRACKING_DEVICE, req.body.SENSOR, req.body.SENSOR_CATEGORY, req.body.SENSOR_DATA_TYPE, req.body.MAC_ADDRESS, req.body.COMPANY_ID, req.body.CREATED_BY, new Date(), req.body.PID];
         errMessage = 'updated'
     } else {
-        sql = `INSERT INTO asset_config_tbl(PID, ASSET_NAME, ASSET_TYPE, INDUSTRIAL_TYPE, INDUSTRIAL_DATA_SOURCE, CONNECTION_TYPE, TRACKING_DEVICE, SENSOR, SENSOR_CATEGORY, SENSOR_DATA_TYPE, MAC_ADDRESS, COMPANY_ID, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,? , ? )`;
-        todo = ['', req.body.ASSET_NAME, req.body.ASSET_TYPE, req.body.INDUSTRIAL_TYPE, req.body.INDUSTRIAL_DATA_SOURCE, req.body.CONNECTION_TYPE, req.body.TRACKING_DEVICE, req.body.SENSOR, req.body.SENSOR_CATEGORY, req.body.SENSOR_DATA_TYPE, req.body.MAC_ADDRESS, req.body.COMPANY_ID, req.body.CREATED_BY, new Date()];
+        sql = `INSERT INTO asset_config_tbl(PID, CONFIG_NAME, ASSET_ID, INDUSTRIAL_TYPE, INDUSTRIAL_DATA_SOURCE, CONNECTION_TYPE, TRACKING_DEVICE, SENSOR, SENSOR_CATEGORY, SENSOR_DATA_TYPE, MAC_ADDRESS, COMPANY_ID, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,? , ? )`;
+        todo = ['', req.body.CONFIG_NAME, req.body.ASSET_ID, req.body.INDUSTRIAL_TYPE, req.body.INDUSTRIAL_DATA_SOURCE, req.body.CONNECTION_TYPE, req.body.TRACKING_DEVICE, req.body.SENSOR, req.body.SENSOR_CATEGORY, req.body.SENSOR_DATA_TYPE, req.body.MAC_ADDRESS, req.body.COMPANY_ID, req.body.CREATED_BY, new Date()];
         errMessage = 'added'
     }
     db.query(sql, todo, (err, result) => {
@@ -45,7 +45,7 @@ router.post('/addAssetConfig', (req, res) => {
 
 router.get('/getAllAssetsConfig/:COMPANY_ID', (req, res) => {
     const COMPANY_ID = req.params.COMPANY_ID;
-    let sql = `SELECT * FROM asset_config_tbl WHERE COMPANY_ID=${COMPANY_ID}`;
+    let sql = `SELECT asset_config_tbl.PID,asset_config_tbl.CONFIG_NAME,asset_config_tbl.ASSET_ID,asset_config_tbl.INDUSTRIAL_TYPE,asset_config_tbl.INDUSTRIAL_DATA_SOURCE,asset_config_tbl.CONNECTION_TYPE,asset_config_tbl.TRACKING_DEVICE,asset_config_tbl.SENSOR,asset_config_tbl.SENSOR_CATEGORY,asset_config_tbl.SENSOR_DATA_TYPE,asset_config_tbl.MAC_ADDRESS,asset_config_tbl.COMPANY_ID ,sensor_type_tbl.NAME,asset_tbl.NAME  FROM asset_config_tbl LEFT JOIN  sensor_type_tbl ON asset_config_tbl.SENSOR = sensor_type_tbl.PID LEFT JOIN asset_tbl ON asset_config_tbl.ASSET_ID=asset_tbl.PID`;
     db.query(sql, (err, result) => {
         if (err) throw err;
         else
@@ -274,6 +274,20 @@ router.post('/addAsset', (req, res) => {
     })
 
 })
+router.post('/deleteAssetByID', (req, res) => {
+    const PID = req.body.PID;
+
+    let sql = `DELETE FROM asset_tbl WHERE PID=${PID}`;
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        else
+            res.send({
+                data: result,
+                status: 200,
+                msg: 'Record deleted.'
+            })
+    })
+})
 // chart request
 router.post('/addChartRequest', (req, res) => {
 
@@ -282,13 +296,14 @@ router.post('/addChartRequest', (req, res) => {
     let errMessage;
     if (req.body.PID) {
         // update
+
         sql = 'UPDATE chart_request_tbl SET NAME = ?,CHART_TYPE=?,CHART_DATA=?,SQL_QUERY=?,IS_DRAGGED=?,MODIFY_BY =?,MODIFY_DATE=? WHERE PID=?';
         todo = [req.body.NAME, req.body.CHART_TYPE, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.CREATED_BY, new Date(), req.body.PID];
         errMessage = ' updated'
     } else {
         // add new
-        sql = `INSERT INTO chart_request_tbl(PID, NAME,CHART_DATA,SQL_QUERY,IS_DRAGGED, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?)`;
-        todo = ['', req.body.NAME, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.IS_DRAGGED, req.body.CREATED_BY, new Date()];
+        sql = `INSERT INTO chart_request_tbl(PID, NAME,CHART_TYPE,CHART_DATA,SQL_QUERY,IS_DRAGGED, CREATED_BY, CREATED_DATE) VALUES (?,?,?,?,?,?,?,?)`;
+        todo = ['', req.body.NAME,req.body.CHART_TYPE, req.body.CHART_DATA, req.body.SQL_QUERY, req.body.IS_DRAGGED, req.body.CREATED_BY, new Date()];
 
         errMessage = ' added';
 
